@@ -152,7 +152,7 @@ code { font-family: 'Cascadia Mono', 'Consolas', monospace; }
 .panel-heading h2 { display: flex; align-items: center; gap: 9px; font-size: 18px; line-height: 1.4; }
 .panel-heading h2 svg { color: var(--green); }
 .tenant-heading { padding-block: 17px 15px; }
-.tenant-heading p { margin-top: 4px; font-size: 13px; }
+.tenant-heading p, .role-heading p { margin-top: 4px; font-size: 13px; }
 .panel-actions, .filter-actions { display: flex; align-items: center; gap: 8px; }
 .refresh-button, .page-button { color: #4e6558; border-color: var(--border); background: #fff; }
 .tenant-notice { margin: 14px 21px 0; }
@@ -239,6 +239,8 @@ tbody tr:hover { background: #f9fbf8; }
 .menu-panel-content { padding: 15px 21px 21px; }
 .menu-type { display: inline-block; padding: 3px 7px; border-radius: 5px; background: #ebf2eb; color: #486054; font-size: 12px; }
 .table-chips { display: flex; flex-wrap: wrap; gap: 4px; min-width: 80px; }
+.protected-role { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; }
+.notice-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
 .record-text { max-width: 225px; overflow-wrap: anywhere; white-space: pre-wrap; }
 .selection-panel { max-height: 280px; overflow: auto; padding: 7px 11px; border: 1px solid var(--border); border-radius: 8px; }
 .tree-selectable { cursor: pointer; }

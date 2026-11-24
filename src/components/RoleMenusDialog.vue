@@ -5,7 +5,7 @@ import { hasPermission, session } from '../session'
 import MenuTree from './MenuTree.vue'
 import ModalDialog from './ModalDialog.vue'
 
-const props = defineProps<{ role: TenantRole }>()
+const props = defineProps<{ role: Pick<TenantRole, 'uid' | 'roleName'> }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 const canReadMenus = hasPermission('tenant', 'tenant:menu:tree')
 const menus = shallowRef<MenuNode[]>([])

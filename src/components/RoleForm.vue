@@ -5,7 +5,7 @@ import { session } from '../session'
 import ModalDialog from './ModalDialog.vue'
 
 const props = defineProps<{ role?: TenantRole }>()
-const emit = defineEmits<{ close: []; saved: [] }>()
+const emit = defineEmits<{ close: []; saved: [createdRole?: Pick<TenantRole, 'uid' | 'roleName'>] }>()
 const form = reactive({
   roleCode: props.role?.roleCode ?? '',
   roleName: props.role?.roleName ?? '',
@@ -37,10 +37,11 @@ async function submit() {
         return
       }
       await api.updateRole(active, { ...updates, uid: props.role.uid })
+      emit('saved')
     } else {
-      await api.createRole(active, { ...fields, roleCode: form.roleCode.trim() })
+      const uid = await api.createRole(active, { ...fields, roleCode: form.roleCode.trim() })
+      emit('saved', { uid, roleName: fields.roleName })
     }
-    emit('saved')
   } catch (problem) {
     error.value = errorMessage(problem)
   } finally {
