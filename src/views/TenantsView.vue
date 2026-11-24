@@ -192,6 +192,6 @@ onMounted(refresh)
     <TenantForm v-else-if="dialog?.kind === 'edit'" key="edit" :tenant="dialog.tenant" @close="dialog = null" @saved="saved" />
     <TenantDetail v-else-if="dialog?.kind === 'detail'" :uid="dialog.uid" @close="dialog = null" @edit="dialog = { kind: 'edit', tenant: $event }" />
     <TenantStatusDialog v-else-if="dialog?.kind === 'status'" :tenant="dialog.tenant" @close="dialog = null" @saved="statusSaved" />
-    <CredentialsDialog v-else-if="dialog?.kind === 'credentials'" :credentials="dialog.credentials" @close="dialog = null" />
+    <CredentialsDialog v-else-if="dialog?.kind === 'credentials'" title="租户创建成功" :tenant-code="dialog.credentials.tenantCode" :username="dialog.credentials.adminUsername" :password="dialog.credentials.initialPassword" username-label="管理员用户名" @close="dialog = null" />
   </div>
 </template>

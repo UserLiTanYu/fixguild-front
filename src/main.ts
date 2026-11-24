@@ -2,16 +2,16 @@ import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import App from './App.vue'
 import LoginView from './views/LoginView.vue'
-import TenantsView from './views/TenantsView.vue'
 import AccountView from './views/AccountView.vue'
-import { homeRoute, session, userAuth } from './session'
+import { workspacePages } from './navigation'
+import { canOpenPage, homeRoute, session } from './session'
 import './styles.css'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/login', component: LoginView, meta: { title: '登录' } },
-    { path: '/platform/tenant', component: TenantsView, meta: { title: '租户管理' } },
+    ...workspacePages.map(({ path, title, component }) => ({ path, component, meta: { title } })),
     { path: '/account', component: AccountView, meta: { title: '我的账号' } },
     { path: '/:pathMatch(.*)*', redirect: () => session.value ? homeRoute() : '/login' },
   ],
@@ -21,7 +21,7 @@ const router = createRouter({
 router.beforeEach((to) => {
   if (to.path !== '/login' && !session.value) return '/login'
   if (to.path === '/login' && session.value) return homeRoute()
-  if (to.path === '/platform/tenant' && userAuth.value && homeRoute() !== to.path) return homeRoute()
+  if (!canOpenPage(to.path)) return homeRoute()
 })
 
 router.afterEach((to) => {

@@ -1,4 +1,5 @@
-export type Client = 'platform' | 'tenant'
+export const clientNames = { platform: '平台', tenant: '租户', technician: '技师' } as const
+export type Client = keyof typeof clientNames
 export type TenantStatus = 0 | 1
 
 export interface Session {
@@ -21,7 +22,9 @@ export interface UserInfo {
 export interface MenuNode {
   uid: string
   menuName: string
+  menuType: 'M' | 'C' | 'F'
   path: string | null
+  perms: string | null
   children: MenuNode[]
 }
 
@@ -77,19 +80,75 @@ interface Envelope<T> {
   traceId?: string
 }
 
-interface TenantPage {
-  records: Tenant[]
+export interface PageResult<T> {
+  records: T[]
   total: number
   pageNum: number
   pageSize: number
 }
 
-interface PageQuery {
+export interface PageQuery {
   pageNum: number
   pageSize: number
+}
+
+interface TenantQuery extends PageQuery {
   tenantCode?: string
   tenantName?: string
   status?: TenantStatus
+}
+
+export interface TenantRole {
+  uid: string
+  roleCode: string
+  roleName: string
+  dataScope: number
+  status: TenantStatus
+  isSystem: 0 | 1
+  remark: string | null
+}
+
+export interface RoleFilters {
+  roleCode?: string
+  roleName?: string
+  status?: TenantStatus
+}
+
+export interface RoleFields {
+  roleName: string
+  status: TenantStatus
+  remark: string
+}
+
+export interface TenantUser {
+  uid: string
+  userCode: string
+  username: string
+  nickname: string | null
+  email: string | null
+  status: TenantStatus
+  lastLoginTime: string | null
+  createTime: string | null
+  roleUids: string[]
+  roleNames: string[]
+}
+
+export interface UserFilters {
+  username?: string
+  nickname?: string
+  status?: TenantStatus
+}
+
+export interface UserFields {
+  nickname?: string
+  email?: string
+  roleUids?: string[]
+}
+
+export interface UserCredentials {
+  uid: string
+  username: string
+  initialPassword: string
 }
 
 export class ApiError extends Error {
@@ -145,6 +204,7 @@ async function request<T>(path: string, body?: object | null, session?: Session)
 }
 
 const tenantEndpoint = '/platform/api/tenant'
+const tenantAdmin = '/tenant/api'
 
 export const api = {
   health: () => request<string>('/api/health'),
@@ -152,10 +212,32 @@ export const api = {
     request<Omit<Session, 'client'> & { userInfo: UserInfo }>(`/account/api/${client}/login`, body),
   userInfo: (session: Session) => request<UserInfo>(`/account/api/${session.client}/user/info`, null, session),
   userAuth: (session: Session) => request<UserAuth>(`/account/api/${session.client}/user/auth`, null, session),
-  tenants: (session: Session, query: PageQuery) => request<TenantPage>(`${tenantEndpoint}/page`, query, session),
+  logout: (session: Session) => request<void>(`/account/api/${session.client}/logout`, null, session),
+  changePassword: (session: Session, body: { oldPassword: string; newPassword: string }) =>
+    request<void>(`/account/api/${session.client}/password/change`, body, session),
+  tenants: (session: Session, query: TenantQuery) => request<PageResult<Tenant>>(`${tenantEndpoint}/page`, query, session),
   tenantDetail: (session: Session, uid: string) => request<Tenant>(`${tenantEndpoint}/detail`, { uid }, session),
   createTenant: (session: Session, body: CreateTenant) => request<TenantCredentials>(`${tenantEndpoint}/create`, body, session),
   updateTenant: (session: Session, body: TenantFields & { uid: string }) => request<void>(`${tenantEndpoint}/update`, body, session),
   setTenantStatus: (session: Session, uid: string, status: TenantStatus) =>
     request<void>(`${tenantEndpoint}/status`, { uid, status }, session),
+  tenantMenus: (session: Session) => request<MenuNode[]>(`${tenantAdmin}/menu/tree`, null, session),
+  tenantRoles: (session: Session, query: PageQuery & RoleFilters) =>
+    request<PageResult<TenantRole>>(`${tenantAdmin}/role/page`, query, session),
+  createRole: (session: Session, body: RoleFields & { roleCode: string }) =>
+    request<string>(`${tenantAdmin}/role/create`, body, session),
+  updateRole: (session: Session, body: Partial<RoleFields> & { uid: string }) =>
+    request<void>(`${tenantAdmin}/role/update`, body, session),
+  assignRoleMenus: (session: Session, uid: string, menuUids: string[]) =>
+    request<void>(`${tenantAdmin}/role/menus`, { uid, menuUids }, session),
+  tenantUsers: (session: Session, query: PageQuery & UserFilters) =>
+    request<PageResult<TenantUser>>(`${tenantAdmin}/user/page`, query, session),
+  createUser: (session: Session, body: UserFields & { username: string; nickname: string; roleUids: string[] }) =>
+    request<UserCredentials>(`${tenantAdmin}/user/create`, body, session),
+  updateUser: (session: Session, body: UserFields & { uid: string }) =>
+    request<void>(`${tenantAdmin}/user/update`, body, session),
+  resetUserPassword: (session: Session, uid: string) =>
+    request<{ uid: string; username: string; newPassword: string }>(`${tenantAdmin}/user/reset-password`, { uid }, session),
+  setUserStatus: (session: Session, uid: string, status: TenantStatus) =>
+    request<void>(`${tenantAdmin}/user/status`, { uid, status }, session),
 }

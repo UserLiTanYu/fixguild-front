@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowRight, Building2, Eye, EyeOff, LockKeyhole, ShieldCheck, UserRound, UsersRound } from '@lucide/vue'
+import { ArrowRight, Building2, Eye, EyeOff, LockKeyhole, ShieldCheck, UserRound, UsersRound, Wrench } from '@lucide/vue'
 import BrandMark from '../components/BrandMark.vue'
 import ServiceStatus from '../components/ServiceStatus.vue'
-import { errorMessage, type Client } from '../api'
+import { clientNames, errorMessage, type Client } from '../api'
 import { homeRoute, sessionNotice, signIn } from '../session'
 
 const router = useRouter()
@@ -15,6 +15,7 @@ const tenantCode = ref('')
 const showPassword = ref(false)
 const pending = ref(false)
 const error = ref('')
+const clients = { platform: Building2, tenant: UsersRound, technician: Wrench }
 
 function selectClient(value: Client) {
   if (value === client.value) return
@@ -28,14 +29,14 @@ async function submit() {
   if (pending.value) return
   error.value = ''
   sessionNotice.value = ''
-  if (!username.value.trim() || !password.value.trim() || (client.value === 'tenant' && !tenantCode.value.trim())) {
+  if (!username.value.trim() || !password.value.trim() || (client.value !== 'platform' && !tenantCode.value.trim())) {
     error.value = '请填写所有登录信息。'
     return
   }
 
   pending.value = true
   try {
-    await signIn(client.value, username.value.trim(), password.value, client.value === 'tenant' ? tenantCode.value.trim() : undefined)
+    await signIn(client.value, username.value.trim(), password.value, client.value === 'platform' ? undefined : tenantCode.value.trim())
     password.value = ''
     await router.replace(homeRoute())
   } catch (problem) {
@@ -53,7 +54,7 @@ async function submit() {
       <div class="login-visual-copy">
         <p class="eyebrow"><span></span>维保管理平台</p>
         <h1>匠盟维保<br />管理控制台</h1>
-        <p>通过平台端管理租户，或登录租户端查看账号与权限。</p>
+        <p>平台、租户与技师统一登录，按账号权限进入对应控制台。</p>
       </div>
     </section>
     <section class="login-body" aria-labelledby="login-title">
@@ -63,11 +64,10 @@ async function submit() {
         <h2 id="login-title">登录控制台</h2>
         <p class="login-subtitle">选择登录端，输入对应的账号信息。</p>
         <div class="login-switch" aria-label="登录端">
-          <button type="button" :aria-pressed="client === 'platform'" :disabled="pending" @click="selectClient('platform')"><Building2 :size="17" />平台端</button>
-          <button type="button" :aria-pressed="client === 'tenant'" :disabled="pending" @click="selectClient('tenant')"><UsersRound :size="17" />租户端</button>
+          <button v-for="(icon, code) in clients" :key="code" type="button" :aria-pressed="client === code" :disabled="pending" @click="selectClient(code)"><component :is="icon" :size="17" />{{ clientNames[code] }}端</button>
         </div>
         <form class="login-form" @submit.prevent="submit">
-          <label v-if="client === 'tenant'" class="field">
+          <label v-if="client !== 'platform'" class="field">
             <span>租户编码</span>
             <span class="input-icon"><Building2 :size="17" /><input v-model="tenantCode" name="tenantCode" placeholder="请输入租户编码" maxlength="32" autocomplete="off" required :disabled="pending" /></span>
           </label>
@@ -83,7 +83,8 @@ async function submit() {
               <button class="icon-button password-toggle" type="button" :aria-label="showPassword ? '隐藏密码' : '显示密码'" @click="showPassword = !showPassword"><EyeOff v-if="showPassword" :size="17" /><Eye v-else :size="17" /></button>
             </div>
           </div>
-          <div v-if="error || sessionNotice" class="alert alert-error" role="alert">{{ error || sessionNotice }}</div>
+          <div v-if="error" class="alert alert-error" role="alert">{{ error }}</div>
+          <div v-else-if="sessionNotice" class="alert alert-note" role="status">{{ sessionNotice }}</div>
           <button class="button button-primary login-submit" type="submit" :disabled="pending">{{ pending ? '正在登录…' : '登 录' }}<ArrowRight :size="18" /></button>
         </form>
         <p class="login-help">需要账号或忘记密码？请联系对应的管理员。</p>

@@ -2,9 +2,12 @@
 import { computed, ref } from 'vue'
 import { KeyRound, ListTree, ShieldCheck, UserRound } from '@lucide/vue'
 import MenuTree from '../components/MenuTree.vue'
+import ChangePasswordDialog from '../components/ChangePasswordDialog.vue'
+import { clientNames } from '../api'
 import { userAuth, userInfo } from '../session'
 
 const authView = ref<'permissions' | 'menus'>('permissions')
+const changingPassword = ref(false)
 const displayName = computed(() => userInfo.value?.nickname || userInfo.value?.username || '当前用户')
 </script>
 
@@ -16,13 +19,13 @@ const displayName = computed(() => userInfo.value?.nickname || userInfo.value?.u
     </section>
     <div class="account-grid">
       <section class="panel profile-panel">
-        <div class="panel-heading"><h2><UserRound :size="20" /> 账号资料</h2></div>
+        <div class="panel-heading"><h2><UserRound :size="20" /> 账号资料</h2><button class="button button-secondary" type="button" @click="changingPassword = true"><KeyRound :size="16" />修改密码</button></div>
         <div class="profile-content">
-          <div class="profile-identity"><span class="avatar avatar-large">{{ Array.from(displayName)[0] }}</span><div><strong>{{ displayName }}</strong><div class="muted">{{ userInfo.clientCode === 'platform' ? '平台端' : '租户端' }}</div></div></div>
+          <div class="profile-identity"><span class="avatar avatar-large">{{ Array.from(displayName)[0] }}</span><div><strong>{{ displayName }}</strong><div class="muted">{{ clientNames[userInfo.clientCode] }}端</div></div></div>
           <dl class="data-list profile-data">
             <div><dt>用户名</dt><dd>{{ userInfo.username }}</dd></div>
             <div><dt>用户编码</dt><dd><code>{{ userInfo.userCode }}</code></dd></div>
-            <div v-if="userInfo.clientCode === 'tenant'"><dt>租户编码</dt><dd><code>{{ userInfo.tenantId }}</code></dd></div>
+            <div v-if="userInfo.clientCode !== 'platform'"><dt>租户编码</dt><dd><code>{{ userInfo.tenantId }}</code></dd></div>
             <div><dt>邮箱</dt><dd>{{ userInfo.email || '—' }}</dd></div>
             <div><dt>用户 UID</dt><dd><code>{{ userInfo.uid }}</code></dd></div>
           </dl>
@@ -49,5 +52,6 @@ const displayName = computed(() => userInfo.value?.nickname || userInfo.value?.u
         </div>
       </section>
     </div>
+    <ChangePasswordDialog v-if="changingPassword" @close="changingPassword = false" />
   </div>
 </template>

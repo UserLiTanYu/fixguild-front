@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
   const target = env.FIXGUILD_API_TARGET || 'http://localhost:8090'
   const proxy: Record<string, ProxyOptions> = {}
 
-  for (const path of ['^/account/api(?:/|$)', '^/platform/api(?:/|$)', '^/api/health$', '^/doc\\.html$', '^/swagger-ui', '^/v3/api-docs']) {
+  for (const path of ['^/(?:account|platform|tenant)/api(?:/|$)', '^/api/health$', '^/doc\\.html$', '^/swagger-ui', '^/v3/api-docs']) {
     proxy[path] = { target, changeOrigin: true }
   }
 

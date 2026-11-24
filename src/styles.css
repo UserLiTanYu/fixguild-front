@@ -92,7 +92,7 @@ code { font-family: 'Cascadia Mono', 'Consolas', monospace; }
 .login-icon { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 20px; border-radius: 14px; background: #e5efe2; color: var(--green); }
 .login-card h2 { font-size: clamp(27px, 3vw, 34px); line-height: 1.25; letter-spacing: -.035em; }
 .login-subtitle { margin-top: 9px; color: var(--muted); font-size: 14px; line-height: 1.55; }
-.login-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 26px 0 22px; padding: 4px; border-radius: 10px; background: #eaf0e9; }
+.login-switch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin: 26px 0 22px; padding: 4px; border-radius: 10px; background: #eaf0e9; }
 .login-switch button { display: flex; justify-content: center; align-items: center; gap: 8px; min-height: 40px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: #56675e; font-size: 14px; font-weight: 650; }
 .login-switch button[aria-pressed='true'] { border-color: #dfe8de; background: #fff; color: var(--green); box-shadow: 0 1px 3px #2445310e; }
 .login-form { display: grid; gap: 17px; }
@@ -234,6 +234,21 @@ tbody tr:hover { background: #f9fbf8; }
 .credentials-data dd code { font-weight: 650; }
 .preserve-lines { white-space: pre-wrap; }
 .confirmation-text { overflow-wrap: anywhere; }
+.session-error { margin-bottom: 14px; }
+.field-static { display: flex; align-items: center; min-height: 40px; padding: 0 11px; border: 1px solid #dce5dd; border-radius: 8px; background: #f3f6f2; color: var(--muted); font-weight: 400; }
+.menu-panel-content { padding: 15px 21px 21px; }
+.menu-type { display: inline-block; padding: 3px 7px; border-radius: 5px; background: #ebf2eb; color: #486054; font-size: 12px; }
+.table-chips { display: flex; flex-wrap: wrap; gap: 4px; min-width: 80px; }
+.record-text { max-width: 225px; overflow-wrap: anywhere; white-space: pre-wrap; }
+.selection-panel { max-height: 280px; overflow: auto; padding: 7px 11px; border: 1px solid var(--border); border-radius: 8px; }
+.tree-selectable { cursor: pointer; }
+.tree-selectable:hover, .role-option:hover { background: #f4f8f3; }
+.tree-selectable input, .role-option input { accent-color: var(--green); }
+.confirm-selection { margin-top: 12px; color: var(--ink); font-size: 13px; }
+.form-hint { margin-top: 8px; }
+.role-options { display: grid; gap: 3px; }
+.role-option { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; padding: 6px 3px; border-radius: 5px; cursor: pointer; font-size: 13px; }
+.role-option code { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
 
 @media (max-width: 1090px) {
   .app-shell { grid-template-columns: 193px minmax(0, 1fr); }
