@@ -6,16 +6,17 @@ import { hasPermission, refreshSession, session, userInfo } from '../session'
 import { usePagedList } from '../usePagedList'
 import CredentialsDialog from '../components/CredentialsDialog.vue'
 import PagedTable from '../components/PagedTable.vue'
+import TenantDeleteDialog from '../components/TenantDeleteDialog.vue'
 import TenantStatus from '../components/TenantStatus.vue'
 import TenantUserActionDialog from '../components/TenantUserActionDialog.vue'
 import TenantUserForm from '../components/TenantUserForm.vue'
 
-type Dialog = { kind: 'create' } | { kind: 'edit' | 'reset' | 'status'; user: TenantUser } |
+type Dialog = { kind: 'create' } | { kind: 'edit' | 'reset' | 'status' | 'delete'; user: TenantUser } |
   { kind: 'credentials'; username: string; password: string; reset: boolean }
 
 const filters = reactive({ username: '', nickname: '', status: '' as Status | '' })
-const can = (action: 'create' | 'update' | 'reset' | 'status') => hasPermission('tenant', `tenant:user:${action}`)
-const hasActions = computed(() => can('update') || can('reset') || can('status'))
+const can = (action: 'create' | 'update' | 'reset' | 'status' | 'delete') => hasPermission('tenant', `tenant:user:${action}`)
+const hasActions = computed(() => can('update') || can('reset') || can('status') || can('delete'))
 const dialog = shallowRef<Dialog | null>(null)
 const message = ref('')
 const refreshError = ref('')
@@ -54,7 +55,7 @@ async function saved(credentials?: UserCredentials) {
   if (session.value && hasPermission('tenant', 'tenant:user:page')) await load()
 }
 
-function statusSaved(notice: string) {
+function userActionSaved(notice: string) {
   dialog.value = null
   refreshError.value = ''
   message.value = notice
@@ -99,6 +100,7 @@ function passwordReset(username: string, password: string) {
                 <button v-if="can('update')" class="text-button" type="button" @click="dialog = { kind: 'edit', user }">编辑</button>
                 <button v-if="can('reset') && user.uid !== userInfo?.uid" class="text-button" type="button" @click="dialog = { kind: 'reset', user }">重置密码</button>
                 <button v-if="can('status') && user.uid !== userInfo?.uid" class="text-button" :class="{ 'text-warn': user.status === 1 }" type="button" @click="dialog = { kind: 'status', user }">{{ user.status === 1 ? '停用' : '启用' }}</button>
+                <button v-if="can('delete') && user.uid !== userInfo?.uid" class="text-button text-warn" type="button" @click="dialog = { kind: 'delete', user }">删除</button>
                 <span v-if="user.uid === userInfo?.uid && !can('update')" class="muted">—</span>
               </td>
             </tr>
@@ -108,7 +110,8 @@ function passwordReset(username: string, password: string) {
     </section>
     <TenantUserForm v-if="dialog?.kind === 'create'" key="create" @close="dialog = null" @saved="saved" />
     <TenantUserForm v-else-if="dialog?.kind === 'edit'" key="edit" :user="dialog.user" @close="dialog = null" @saved="saved" />
-    <TenantUserActionDialog v-else-if="dialog?.kind === 'reset' || dialog?.kind === 'status'" :action="dialog.kind" :user="dialog.user" @close="dialog = null" @saved="statusSaved" @reset="passwordReset" />
+    <TenantUserActionDialog v-else-if="dialog?.kind === 'reset' || dialog?.kind === 'status'" :action="dialog.kind" :user="dialog.user" @close="dialog = null" @saved="userActionSaved" @reset="passwordReset" />
+    <TenantDeleteDialog v-else-if="dialog?.kind === 'delete'" kind="user" :uid="dialog.user.uid" :name="dialog.user.username" @close="dialog = null" @deleted="userActionSaved('用户已删除')" />
     <CredentialsDialog v-else-if="dialog?.kind === 'credentials'" :title="dialog.reset ? '密码重置成功' : '用户创建成功'" :tenant-code="userInfo?.tenantId ?? ''" :username="dialog.username" :password="dialog.password" :password-label="dialog.reset ? '新密码' : '初始密码'" @close="dialog = null" />
   </div>
 </template>

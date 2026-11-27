@@ -7,14 +7,15 @@ import { usePagedList } from '../usePagedList'
 import PagedTable from '../components/PagedTable.vue'
 import RoleForm from '../components/RoleForm.vue'
 import RoleMenusDialog from '../components/RoleMenusDialog.vue'
+import TenantDeleteDialog from '../components/TenantDeleteDialog.vue'
 import TenantStatus from '../components/TenantStatus.vue'
 
 const filters = reactive({ roleCode: '', roleName: '', status: '' as Status | '' })
-const can = (action: 'create' | 'update' | 'menus') => hasPermission('tenant', `tenant:role:${action}`)
-const hasActions = computed(() => can('update') || can('menus'))
+const can = (action: 'create' | 'update' | 'menus' | 'delete') => hasPermission('tenant', `tenant:role:${action}`)
+const hasActions = computed(() => can('update') || can('menus') || can('delete'))
 type RoleIdentity = Pick<TenantRole, 'uid' | 'roleName'>
 const dialog = shallowRef<{ kind: 'create' } | { kind: 'edit'; role: TenantRole } |
-  { kind: 'menus'; role: RoleIdentity } | null>(null)
+  { kind: 'menus' | 'delete'; role: RoleIdentity } | null>(null)
 const newRole = shallowRef<RoleIdentity | null>(null)
 const message = ref('')
 const refreshError = ref('')
@@ -37,9 +38,10 @@ async function saved(createdRole?: RoleIdentity) {
   const change = dialog.value
   dialog.value = null
   newRole.value = createdRole ?? null
-  message.value = change?.kind === 'menus' ? '菜单授权已更新' : change?.kind === 'create' ? '角色已创建' : '角色已更新'
+  const notices = { menus: '菜单授权已更新', create: '角色已创建', edit: '角色已更新', delete: '角色已删除' }
+  message.value = change ? notices[change.kind] : ''
   refreshError.value = ''
-  if (change && change.kind !== 'create') {
+  if (change?.kind === 'edit' || change?.kind === 'menus') {
     try {
       await refreshSession()
     } catch (problem) {
@@ -64,7 +66,7 @@ function openNewRoleMenus() {
       <div class="panel-heading role-heading">
         <div>
           <h2 id="role-list-title">角色列表</h2>
-          <p v-if="hasActions" class="muted">编辑和分配菜单适用于自定义角色。系统内置角色仅供查看。</p>
+          <p v-if="hasActions" class="muted">系统内置角色仅供查看。自定义角色按权限操作。</p>
         </div>
         <div class="panel-actions">
           <button class="icon-button refresh-button" type="button" aria-label="刷新列表" :disabled="loading" @click="load"><RefreshCw :size="17" /></button>
@@ -99,6 +101,7 @@ function openNewRoleMenus() {
                 <template v-if="role.isSystem !== 1">
                   <button v-if="can('update')" class="text-button" type="button" @click="dialog = { kind: 'edit', role }">编辑</button>
                   <button v-if="can('menus')" class="text-button" type="button" @click="dialog = { kind: 'menus', role }">分配菜单</button>
+                  <button v-if="can('delete')" class="text-button text-warn" type="button" @click="dialog = { kind: 'delete', role }">删除</button>
                 </template>
                 <span v-else class="muted protected-role"><LockKeyhole :size="13" />内置角色只读</span>
               </td>
@@ -110,5 +113,6 @@ function openNewRoleMenus() {
     <RoleForm v-if="dialog?.kind === 'create'" key="create" @close="dialog = null" @saved="saved" />
     <RoleForm v-else-if="dialog?.kind === 'edit'" key="edit" :role="dialog.role" @close="dialog = null" @saved="saved" />
     <RoleMenusDialog v-else-if="dialog?.kind === 'menus'" :role="dialog.role" @close="dialog = null" @saved="saved" />
+    <TenantDeleteDialog v-else-if="dialog?.kind === 'delete'" kind="role" :uid="dialog.role.uid" :name="dialog.role.roleName" @close="dialog = null" @deleted="saved()" />
   </div>
 </template>

@@ -230,6 +230,8 @@ export const api = {
     request<void>(`${tenantAdmin}/role/update`, body, session),
   assignRoleMenus: (session: Session, uid: string, menuUids: string[]) =>
     request<void>(`${tenantAdmin}/role/menus`, { uid, menuUids }, session),
+  deleteRole: (session: Session, uid: string) =>
+    request<void>(`${tenantAdmin}/role/delete`, { uid }, session),
   tenantUsers: (session: Session, query: PageQuery & UserFilters) =>
     request<PageResult<TenantUser>>(`${tenantAdmin}/user/page`, query, session),
   createUser: (session: Session, body: UserFields & { username: string; nickname: string; roleUids: string[] }) =>
@@ -240,4 +242,6 @@ export const api = {
     request<{ uid: string; username: string; newPassword: string }>(`${tenantAdmin}/user/reset-password`, { uid }, session),
   setUserStatus: (session: Session, uid: string, status: TenantStatus) =>
     request<void>(`${tenantAdmin}/user/status`, { uid, status }, session),
+  deleteUser: (session: Session, uid: string) =>
+    request<void>(`${tenantAdmin}/user/delete`, { uid }, session),
 }
